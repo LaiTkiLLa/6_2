@@ -1,34 +1,35 @@
 
-import re
 from pprint import pprint
 import csv
+import re
 
-PHONE_PATTERN = r'(\+7|8)*[\s\(]*(\d{3})[\)\s-]*(\d{3})[-]*(\d{2})[-]*(\d{2})[\s\(]*(доб\.)*[\s]*(\d+)*[\)]*'
-PHONE_SUB = r'+7(\2)-\3-\4-\5 \6\7'
-
-with open("phonebook_raw.csv", encoding="utf-8") as f:
-    rows = csv.reader(f, delimiter=",")
-    contacts_list = list(rows)
+PHONE_SEARCH = r'(\+7|8)*[\s\(]*(\d{3})[\)\s-]*(\d{3})[-]*(\d{2})[-]*(\d{2})[\s\(]*(доб\.)*[\s]*(\d+)*[\)]*'
+PHONE_GROUPS = r'+7(\2)-\3-\4-\5 \6\7'
 
 
-def main(contact_list: list):
-    
-    new_list = list()
-    for item in contact_list:
-        full_name = ' '.join(item[:3]).split(' ')
-        result = [full_name[0], full_name[1], full_name[2], item[3], item[4],
-                  re.sub(PHONE_PATTERN, PHONE_SUB, item[5]),
-                  item[6]]
-        new_list.append(result)
-    return union(new_list)
+
+with open("phonebook_raw.csv") as f:
+  rows = csv.reader(f, delimiter=",")
+  contacts_list = list(rows)
+# pprint(contacts_list)
+
+def name(contacts_list: list):
+    new_contact_book = list()
+    for text in contacts_list:
+        text_join = (',').join(text)
+        full_name_split = re.split(",| ", text_join)
+        numbers_sub = re.sub(PHONE_SEARCH,PHONE_GROUPS,text_join)
+        number_split = numbers_sub.split(',')
+        contact_book = [full_name_split[0], full_name_split[1], full_name_split[2], text[3], text[4], number_split[5], text[6]]
+        new_contact_book.append(contact_book)
+    return union(new_contact_book)
 
 
-def union(contacts: list):
-    
-    for contact in contacts:
+def union(contacts_list: list):
+    for contact in contacts_list:
         first_name = contact[0]
         last_name = contact[1]
-        for new_contact in contacts:
+        for new_contact in contacts_list:
             new_first_name = new_contact[0]
             new_last_name = new_contact[1]
             if first_name == new_first_name and last_name == new_last_name:
@@ -39,13 +40,13 @@ def union(contacts: list):
                 if contact[6] == "": contact[6] = new_contact[6]
 
     result_list = list()
-    for i in contacts:
+    for i in contacts_list:
         if i not in result_list:
             result_list.append(i)
 
-    return result_list
+    print(result_list)
 
 
 with open("phonebook.csv", "w", encoding="utf-8") as f:
     datawriter = csv.writer(f, delimiter=',')
-    datawriter.writerows(main(contacts_list))
+    datawriter.writerows(name(contacts_list))
